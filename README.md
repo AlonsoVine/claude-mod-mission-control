@@ -12,7 +12,7 @@ Cada tarjeta muestra:
 
 Cada subagente se une al principal con una línea discontinua de un color propio, que también tiñe su progreso. El agente principal muestra su modelo, su consumo y una barra global con una franja por subagente, proporcional a sus tareas.
 
-Los nodos terminados se quedan visibles hasta que el siguiente encargo lanza subagentes nuevos. El diagrama lleva fondo oscuro propio, así que se lee con cualquier tema.
+Los nodos terminados se quedan visibles hasta que el siguiente encargo lanza subagentes nuevos. El diagrama no tiene fondo propio: se dibuja sobre el del panel y sus colores siguen el tema claro u oscuro de la app.
 
 ## Consumo de tokens
 

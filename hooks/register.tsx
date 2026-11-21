@@ -8,16 +8,22 @@ const TITLE = 'Mission control'
 const MAX = 12
 const MAX_DOTS = 24
 const COLORS = [
-  '#22d3ee',
-  '#c084fc',
-  '#fb923c',
-  '#f472b6',
-  '#a3e635',
-  '#facc15',
-  '#60a5fa',
-  '#2dd4bf',
+  '#0ea5c4',
+  '#a855f7',
+  '#f97316',
+  '#ec4899',
+  '#5a9e0f',
+  '#d99a06',
+  '#3b82f6',
+  '#14b8a6',
 ]
-const STATUS = { run: '#58a6ff', done: '#3fb950', err: '#f85149' } as const
+const STATUS = { run: '#3b82f6', done: '#22a447', err: '#e5484d' } as const
+// Sin fondo propio: el panel se ve sobre el de la app, y los neutros siguen
+// su tema claro u oscuro; los atributos son el recurso si no hay estilos.
+const TRACK = 'class="t" fill="#808080" fill-opacity=".25"'
+const STYLE =
+  '<style>.p{fill:#1f1e1d}.s{fill:#6f6e69}.c{fill:#000;fill-opacity:.04}.t{fill:#000;fill-opacity:.12}' +
+  '@media (prefers-color-scheme:dark){.p{fill:#eeeeec}.s{fill:#a3a29c}.c{fill:#fff;fill-opacity:.06}.t{fill:#fff;fill-opacity:.16}}</style>'
 const WORD = { run: 'en curso', done: 'terminado', err: 'error' } as const
 // Lo único que el mod añade al contexto de un modelo: una línea por subagente.
 const ASK =
@@ -101,7 +107,7 @@ const meter = (node: Node, x: number, y: number, w: number, color: string) => {
     const fill = node.status === 'err' ? STATUS.err : color
 
     return (
-      `<rect x="${x}" y="${y}" width="${w}" height="5" rx="2.5" fill="#30363d"/>` +
+      `<rect x="${x}" y="${y}" width="${w}" height="5" rx="2.5" class="t" fill="#808080" fill-opacity=".25"/>` +
       `<rect x="${x}" y="${y}" width="${w * 0.3}" height="5" rx="2.5" fill="${fill}">` +
       (node.status === 'run'
         ? `<animate attributeName="x" values="${x};${x + w * 0.7};${x}" dur="1.8s" repeatCount="indefinite"/>`
@@ -111,7 +117,7 @@ const meter = (node: Node, x: number, y: number, w: number, color: string) => {
   }
   if (node.total < 1 || node.total > MAX_DOTS) {
     return (
-      `<rect x="${x}" y="${y}" width="${w}" height="5" rx="2.5" fill="#30363d"/>` +
+      `<rect x="${x}" y="${y}" width="${w}" height="5" rx="2.5" class="t" fill="#808080" fill-opacity=".25"/>` +
       `<rect x="${x}" y="${y}" width="${w * value}" height="5" rx="2.5" fill="${color}"/>`
     )
   }
@@ -122,7 +128,7 @@ const meter = (node: Node, x: number, y: number, w: number, color: string) => {
     const cx = x + 4 + i * gap
     const isNow = i === filled && node.status === 'run'
     dots.push(
-      `<circle cx="${cx}" cy="${y + 2.5}" r="3.5" fill="${i < filled ? color : '#30363d'}"${isNow ? ` stroke="${color}"` : ''}>` +
+      `<circle cx="${cx}" cy="${y + 2.5}" r="3.5" ${i < filled ? `fill="${color}"` : TRACK}${isNow ? ` stroke="${color}"` : ''}>` +
         (isNow
           ? `<animate attributeName="stroke-opacity" values="1;.2;1" dur="1.4s" repeatCount="indefinite"/>`
           : '') +
@@ -147,10 +153,10 @@ const draw = ({ nodes, main }: Board): { source: string; height: number } => {
   const spent = nodes.reduce((sum, node) => sum + node.ctx + node.out, 0)
   const out: string[] = [
     `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${height}" viewBox="0 0 ${W} ${height}" font-family="ui-sans-serif,system-ui,sans-serif">`,
-    `<rect width="${W}" height="${height}" rx="10" fill="#0d1117"/>`,
+    STYLE,
   ]
   nodes.forEach((node, i) => {
-    const color = COLORS[node.color % COLORS.length] ?? '#22d3ee'
+    const color = COLORS[node.color % COLORS.length] ?? '#0ea5c4'
     const y = TOP + i * (H + GAP)
     const sx = 70 + ((n - i) * 200) / (n + 1)
     const lane = FOOT + 6 + (n - 1 - i) * 4
@@ -161,13 +167,13 @@ const draw = ({ nodes, main }: Board): { source: string; height: number } => {
         : ''
     out.push(
       `<path d="M${sx},${FOOT} V${lane} H${tx} V${y + H / 2} H${X}" fill="none" stroke="${color}" stroke-width="1.5" stroke-dasharray="5 4"/>`,
-      `<rect x="${X}" y="${y}" width="${CW}" height="${H}" rx="8" fill="#161b22" stroke="${color}" stroke-opacity=".45"/>`,
+      `<rect x="${X}" y="${y}" width="${CW}" height="${H}" rx="8" class="c" fill="#808080" fill-opacity=".08" stroke="${color}" stroke-opacity=".45"/>`,
       `<circle cx="${X + 13}" cy="${y + 15}" r="4" fill="${STATUS[node.status]}">${pulse}</circle>`,
-      `<text x="${X + 24}" y="${y + 19}" font-size="12" font-weight="600" fill="#e6edf3">${esc(node.name)}</text>`,
+      `<text x="${X + 24}" y="${y + 19}" font-size="12" font-weight="600" class="p" fill="#808080">${esc(node.name)}</text>`,
       `<text x="${X + CW - 10}" y="${y + 19}" font-size="11" text-anchor="end" fill="${color}">${figure(node)}</text>`,
-      `<text x="${X + 10}" y="${y + 34}" font-size="10.5" fill="#8b949e">${esc(node.task)}</text>`,
+      `<text x="${X + 10}" y="${y + 34}" font-size="10.5" class="s" fill="#808080">${esc(node.task)}</text>`,
       `<text x="${X + 10}" y="${y + 49}" font-size="10" fill="${color}" fill-opacity=".85">${esc(node.status === 'run' ? `▸ ${node.act || 'pensando'}` : WORD[node.status])}</text>`,
-      `<text x="${X + CW - 10}" y="${y + 49}" font-size="9.5" text-anchor="end" fill="#8b949e">${esc(cost(node))}</text>`,
+      `<text x="${X + CW - 10}" y="${y + 49}" font-size="9.5" text-anchor="end" class="s" fill="#808080">${esc(cost(node))}</text>`,
       meter(node, X + 10, y + 59, CW - 20, color),
     )
   })
@@ -180,7 +186,7 @@ const draw = ({ nodes, main }: Board): { source: string; height: number } => {
   let at = 0
   let reached = 0
   nodes.forEach((node, i) => {
-    const color = COLORS[node.color % COLORS.length] ?? '#22d3ee'
+    const color = COLORS[node.color % COLORS.length] ?? '#0ea5c4'
     const weight = weights[i] ?? 1
     const x = BX + (at / whole) * BW
     const w = Math.max(1, (weight / whole) * BW - 1.5)
@@ -194,10 +200,10 @@ const draw = ({ nodes, main }: Board): { source: string; height: number } => {
   })
   const overall = Math.round((reached / whole) * 100)
   out.push(
-    `<rect x="50" y="8" width="240" height="${FOOT - 8}" rx="8" fill="none" stroke="#8b949e"/>`,
-    `<text x="170" y="25" font-size="12" font-weight="600" text-anchor="middle" fill="#e6edf3">Agente principal</text>`,
-    `<text x="170" y="39" font-size="10" text-anchor="middle" fill="#8b949e">${esc(cost(main) || 'modelo aún sin datos')}</text>`,
-    `<text x="170" y="53" font-size="10" text-anchor="middle" fill="#8b949e">${overall}% · ${running} en curso · ${n - running} acabados · subagentes ${kilo(spent)}</text>`,
+    `<rect x="50" y="8" width="240" height="${FOOT - 8}" rx="8" fill="none" stroke="#808080"/>`,
+    `<text x="170" y="25" font-size="12" font-weight="600" text-anchor="middle" class="p" fill="#808080">Agente principal</text>`,
+    `<text x="170" y="39" font-size="10" text-anchor="middle" class="s" fill="#808080">${esc(cost(main) || 'modelo aún sin datos')}</text>`,
+    `<text x="170" y="53" font-size="10" text-anchor="middle" class="s" fill="#808080">${overall}% · ${running} en curso · ${n - running} acabados · subagentes ${kilo(spent)}</text>`,
     '</svg>',
   )
 
