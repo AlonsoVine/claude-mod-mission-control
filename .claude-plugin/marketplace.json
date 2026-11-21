@@ -1,0 +1,5 @@
+{
+  "name": "claude-mod-mission-control",
+  "owner": { "name": "AlonsoVine" },
+  "plugins": [{ "name": "mission-control", "source": "./" }]
+}

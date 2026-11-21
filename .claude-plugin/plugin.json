@@ -1,0 +1,6 @@
+{
+  "name": "mission-control",
+  "version": "0.1.0",
+  "description": "Panel con el agente principal y sus subagentes en diagrama, con estado y progreso por pasos",
+  "types": "./types/index.d.ts"
+}
